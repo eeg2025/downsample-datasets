@@ -4,20 +4,20 @@ This pipeline processes EEG-BIDS datasets from 500 Hz to 100 Hz with filtering a
 
 ## Overview
 
-The pipeline processes an EEG-BIDS dataset ( for example, at `/Volumes/data/HBN/R5`) and creates a new dataset at `/Volumes/data/HBN/R5_L100` with the following modifications. This is specifically designed for the HBN-EEG datasets for the EEG2025 NeurIPS Challenge:
+The pipeline processes an EEG-BIDS dataset (for example, at `/Volumes/data/HBN/R5`) and creates a new dataset at `/Volumes/data/HBN/R5_L100` with the following modifications. This is specifically designed for the HBN-EEG datasets for the EEG2025 NeurIPS Challenge.
 
-1. **EEG Data (.set files)**: 
+1. **EEG Data (.set files)**:
    - Bandpass filter: 0.5-50 Hz
    - Resample: 500 Hz → 100 Hz
    - Validate events
 
-2. **JSON Metadata**: 
+2. **JSON Metadata**:
    - Update `SamplingFrequency` from 500 to 100
 
-3. **Events Files**: 
+3. **Events Files**:
    - Remove `sample` column (tied to original 500 Hz sampling)
 
-4. **Other Files**: 
+4. **Other Files**:
    - Copy unchanged to maintain BIDS structure
 
 ## Requirements
@@ -28,7 +28,8 @@ The pipeline processes an EEG-BIDS dataset ( for example, at `/Volumes/data/HBN/
 
 ## Usage
 
-### Quick Start
+### Quick Start (Recommended)
+
 ```bash
 ./run_eeg_processing.sh
 ```
@@ -38,6 +39,7 @@ The pipeline processes an EEG-BIDS dataset ( for example, at `/Volumes/data/HBN/
 If you prefer to run steps individually:
 
 1. **Process EEG data (MATLAB)**:
+
    ```matlab
    % In MATLAB:
    addpath('/path/to/this/directory');
@@ -46,6 +48,7 @@ If you prefer to run steps individually:
    ```
 
 2. **Process metadata (Python)**:
+
    ```bash
    python3 process_metadata.py /Volumes/data/HBN/R5 /Volumes/data/HBN/R5_L100
    ```
@@ -59,7 +62,8 @@ If you prefer to run steps individually:
 ## What Gets Processed
 
 ### Input Structure
-```
+
+```shell
 /Volumes/data/HBN/R5/
 ├── sub-*/
 │   └── eeg/
@@ -71,7 +75,8 @@ If you prefer to run steps individually:
 ```
 
 ### Output Structure
-```
+
+```shell
 /Volumes/data/HBN/R5_L100/
 ├── sub-*/
 │   └── eeg/
@@ -120,19 +125,24 @@ After processing, the script will show file counts to verify completion:
 ## Troubleshooting
 
 ### EEGLAB Not Found
-```
+
+```shell
 Error: EEGLAB not found. Please add EEGLAB to your MATLAB path.
 ```
+
 **Solution**: In MATLAB, run `addpath('/path/to/eeglab')` and `eeglab` to initialize.
 
 ### MATLAB Not in PATH
-```
+
+```shell
 Error: MATLAB not found. Please ensure MATLAB is in your PATH.
 ```
+
 **Solution**: Add MATLAB to your system PATH or run with full path: `/Applications/MATLAB_R2023a.app/bin/matlab`
 
 ### Python Dependencies
 If pandas is missing, it will be installed automatically. For manual installation:
+
 ```bash
 pip3 install pandas
 ```
