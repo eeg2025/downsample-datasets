@@ -62,7 +62,7 @@ def update_json_files(input_dir, output_dir):
 
 
 def process_events_files(input_dir, output_dir):
-    """Remove sample column from events.tsv files."""
+    """Remove sample column from events.tsv files while preserving 'n/a' values."""
     print("Processing events.tsv files...")
     
     # Find all events.tsv files
@@ -77,8 +77,8 @@ def process_events_files(input_dir, output_dir):
             # Create output directory
             output_file.parent.mkdir(parents=True, exist_ok=True)
             
-            # Read events file
-            df = pd.read_csv(events_file, sep='\t')
+            # Read events file with keep_default_na=False to preserve 'n/a' as literal strings
+            df = pd.read_csv(events_file, sep='\t', keep_default_na=False, na_values=[''])
             
             # Remove sample column if it exists
             if 'sample' in df.columns:
@@ -87,8 +87,8 @@ def process_events_files(input_dir, output_dir):
             else:
                 print(f"  {rel_path}: No 'sample' column found")
             
-            # Write updated events file
-            df.to_csv(output_file, sep='\t', index=False)
+            # Write updated events file with na_rep='n/a' to handle any remaining NaN values
+            df.to_csv(output_file, sep='\t', index=False, na_rep='n/a')
             
         except Exception as e:
             print(f"  Error processing {events_file}: {e}")
