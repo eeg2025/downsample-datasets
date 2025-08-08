@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-Temporary fix script to add 'n/a' to empty duration and feedback columns 
-in events.tsv files for processed EEG-BIDS datasets (R1_L100 to R12_L100).
+Temporary fix script to add 'n/a' to ALL empty cells in events.tsv files 
+for processed EEG-BIDS datasets (R1_L100 to R12_L100).
 
 This script fixes the issue where the process_metadata.py script was not 
-preserving 'n/a' values when processing events.tsv files.
+preserving 'n/a' values when processing events.tsv files. It handles all 
+columns that should contain 'n/a' for missing values (duration, value, 
+user_answer, correct_answer, feedback, etc.) while preserving numeric columns.
 
 Usage: python fix_events_duration.py
 """
@@ -14,38 +16,52 @@ import pandas as pd
 from pathlib import Path
 
 def fix_events_file(events_file_path):
-    """Fix empty duration and feedback columns by setting them to 'n/a'."""
+    """Fix ALL empty cells in events.tsv files by setting them to 'n/a'."""
     try:
         # Read the events file
         df = pd.read_csv(events_file_path, sep='\t')
         
-        # Check if duration column exists and fix empty values
-        changes_made = False
-        if 'duration' in df.columns:
-            # Count empty values before fixing
-            empty_duration_count = df['duration'].isna().sum() + (df['duration'] == '').sum()
-            if empty_duration_count > 0:
-                # Replace empty strings and NaN with 'n/a'
-                df['duration'] = df['duration'].fillna('n/a')
-                df['duration'] = df['duration'].replace('', 'n/a')
-                changes_made = True
-                print(f"    Fixed {empty_duration_count} empty duration values")
+        # Count total empty values before fixing
+        total_empty_before = df.isna().sum().sum() + (df == '').sum().sum()
         
-        # Check if feedback column exists and fix empty values
-        if 'feedback' in df.columns:
-            # Count empty values before fixing
-            empty_feedback_count = df['feedback'].isna().sum() + (df['feedback'] == '').sum()
-            if empty_feedback_count > 0:
-                # Replace empty strings and NaN with 'n/a' (but preserve existing non-empty values)
-                mask = (df['feedback'].isna()) | (df['feedback'] == '')
-                df.loc[mask, 'feedback'] = 'n/a'
-                changes_made = True
-                print(f"    Fixed {empty_feedback_count} empty feedback values")
-        
-        # Write back only if changes were made
-        if changes_made:
-            df.to_csv(events_file_path, sep='\t', index=False)
-            return True
+        if total_empty_before > 0:
+            # Skip 'onset' column as it should contain numeric values, not 'n/a'
+            # Also skip any purely numeric columns that shouldn't have 'n/a'
+            columns_to_fix = []
+            for col in df.columns:
+                if col != 'onset':  # Don't modify onset times
+                    # Check if column has any non-numeric string values (indicating it can have 'n/a')
+                    sample_values = df[col].dropna().astype(str)
+                    if len(sample_values) > 0:
+                        # If any value contains non-numeric characters, treat as string column
+                        has_strings = any(not val.replace('.', '').replace('-', '').isdigit() 
+                                        for val in sample_values if val != '')
+                        if has_strings or col in ['duration', 'value', 'event_code', 'feedback', 
+                                                'user_answer', 'correct_answer']:
+                            columns_to_fix.append(col)
+            
+            changes_made = False
+            total_fixed = 0
+            
+            for col in columns_to_fix:
+                # Count empty values in this column
+                empty_count = df[col].isna().sum() + (df[col] == '').sum()
+                if empty_count > 0:
+                    # Replace empty strings and NaN with 'n/a'
+                    df[col] = df[col].fillna('n/a')
+                    df[col] = df[col].replace('', 'n/a')
+                    total_fixed += empty_count
+                    changes_made = True
+                    print(f"    Fixed {empty_count} empty values in '{col}' column")
+            
+            # Write back only if changes were made
+            if changes_made:
+                df.to_csv(events_file_path, sep='\t', index=False)
+                print(f"    Total fixed: {total_fixed} empty cells")
+                return True
+            else:
+                print("    No empty values found in fixable columns")
+                return False
         else:
             print("    No empty values found")
             return False
@@ -92,7 +108,7 @@ def main():
         print(f"Error: Base path {base_path} does not exist")
         return 1
     
-    print("Fixing empty duration and feedback columns in events.tsv files")
+    print("Fixing ALL empty cells in events.tsv files by replacing with 'n/a'")
     print("=" * 70)
     
     total_fixed = 0
@@ -110,7 +126,7 @@ def main():
     print("\n" + "=" * 70)
     print(f"Processing complete!")
     print(f"Processed {total_datasets} datasets")
-    print(f"Fixed events.tsv files with empty duration/feedback columns")
+    print(f"Fixed events.tsv files by replacing empty cells with 'n/a'")
     
     return 0
 

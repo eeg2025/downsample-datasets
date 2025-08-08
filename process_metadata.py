@@ -3,7 +3,7 @@
 # This script is used to process the metadata files for the resampled EEG-BIDS dataset.
 # It is specifically designed for the HBN-EEG datasets for the EEG2025 NeurIPS Challenge.
 # It is used to update the SamplingFrequency in the .json files from 500 to 100
-# and remove the 'sample' column from the events.tsv files.
+# and remove the 'sample' column from the events.tsv files while preserving all 'n/a' values.
 # It also copies other files maintaining the directory structure.
 #
 # (c) 8/2025, Seyed Yahya Shirazi, SCCN, INC, UCSD
@@ -12,7 +12,7 @@ Process metadata files for resampled EEG-BIDS dataset.
 
 This script:
 1. Updates SamplingFrequency in .json files from 500 to 100
-2. Removes the 'sample' column from events.tsv files
+2. Removes the 'sample' column from events.tsv files while preserving all 'n/a' values
 3. Copies other files maintaining the directory structure
 """
 
@@ -62,7 +62,7 @@ def update_json_files(input_dir, output_dir):
 
 
 def process_events_files(input_dir, output_dir):
-    """Remove sample column from events.tsv files while preserving 'n/a' values."""
+    """Remove sample column from events.tsv files while preserving ALL 'n/a' values in all columns."""
     print("Processing events.tsv files...")
     
     # Find all events.tsv files
@@ -78,6 +78,7 @@ def process_events_files(input_dir, output_dir):
             output_file.parent.mkdir(parents=True, exist_ok=True)
             
             # Read events file with keep_default_na=False to preserve 'n/a' as literal strings
+            # Only treat empty strings as missing values, not 'n/a'
             df = pd.read_csv(events_file, sep='\t', keep_default_na=False, na_values=[''])
             
             # Remove sample column if it exists
@@ -87,7 +88,15 @@ def process_events_files(input_dir, output_dir):
             else:
                 print(f"  {rel_path}: No 'sample' column found")
             
-            # Write updated events file with na_rep='n/a' to handle any remaining NaN values
+            # Ensure all empty cells that should be 'n/a' are properly set
+            # Skip 'onset' column as it should contain numeric values
+            for col in df.columns:
+                if col != 'onset':  # Don't modify onset times
+                    # Replace any remaining empty strings or NaN with 'n/a'
+                    df[col] = df[col].fillna('n/a')
+                    df[col] = df[col].replace('', 'n/a')
+            
+            # Write updated events file
             df.to_csv(output_file, sep='\t', index=False, na_rep='n/a')
             
         except Exception as e:
