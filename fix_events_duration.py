@@ -26,19 +26,25 @@ def fix_events_file(events_file_path):
         
         if total_empty_before > 0:
             # Skip 'onset' column as it should contain numeric values, not 'n/a'
-            # Also skip any purely numeric columns that shouldn't have 'n/a'
+            # Define columns that should always have 'n/a' for empty values
+            always_fix_columns = ['duration', 'value', 'event_code', 'feedback', 
+                                'user_answer', 'correct_answer']
+            
             columns_to_fix = []
             for col in df.columns:
                 if col != 'onset':  # Don't modify onset times
-                    # Check if column has any non-numeric string values (indicating it can have 'n/a')
-                    sample_values = df[col].dropna().astype(str)
-                    if len(sample_values) > 0:
-                        # If any value contains non-numeric characters, treat as string column
-                        has_strings = any(not val.replace('.', '').replace('-', '').isdigit() 
-                                        for val in sample_values if val != '')
-                        if has_strings or col in ['duration', 'value', 'event_code', 'feedback', 
-                                                'user_answer', 'correct_answer']:
-                            columns_to_fix.append(col)
+                    # Always fix known columns that should have 'n/a'
+                    if col in always_fix_columns:
+                        columns_to_fix.append(col)
+                    else:
+                        # For other columns, check if they have non-numeric string values
+                        sample_values = df[col].dropna().astype(str)
+                        if len(sample_values) > 0:
+                            # If any value contains non-numeric characters, treat as string column
+                            has_strings = any(not val.replace('.', '').replace('-', '').isdigit() 
+                                            for val in sample_values if val != '')
+                            if has_strings:
+                                columns_to_fix.append(col)
             
             changes_made = False
             total_fixed = 0

@@ -90,11 +90,25 @@ def process_events_files(input_dir, output_dir):
             
             # Ensure all empty cells that should be 'n/a' are properly set
             # Skip 'onset' column as it should contain numeric values
+            # Define columns that should always have 'n/a' for empty values
+            always_fix_columns = ['duration', 'value', 'event_code', 'feedback', 
+                                'user_answer', 'correct_answer']
+            
             for col in df.columns:
                 if col != 'onset':  # Don't modify onset times
-                    # Replace any remaining empty strings or NaN with 'n/a'
-                    df[col] = df[col].fillna('n/a')
-                    df[col] = df[col].replace('', 'n/a')
+                    # Always fix known columns that should have 'n/a'
+                    if col in always_fix_columns:
+                        df[col] = df[col].fillna('n/a')
+                        df[col] = df[col].replace('', 'n/a')
+                    else:
+                        # For other columns, only fix if they contain non-numeric string values
+                        sample_values = df[col].dropna().astype(str)
+                        if len(sample_values) > 0:
+                            has_strings = any(not val.replace('.', '').replace('-', '').isdigit() 
+                                            for val in sample_values if val != '')
+                            if has_strings:
+                                df[col] = df[col].fillna('n/a')
+                                df[col] = df[col].replace('', 'n/a')
             
             # Write updated events file
             df.to_csv(output_file, sep='\t', index=False, na_rep='n/a')
