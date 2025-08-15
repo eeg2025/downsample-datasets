@@ -11,8 +11,8 @@
 set -e  # Exit on any error
 
 # Configuration
-INPUT_DIR="/Volumes/data/HBN/R5"
-OUTPUT_DIR="/Volumes/data/HBN/R5_L100"
+INPUT_DIR="/Users/yahya/Library/CloudStorage/GoogleDrive-pulcher88@gmail.com/My Drive/to Share/HBN Minisets/hbn_bids_R5"
+OUTPUT_DIR="/Users/yahya/Library/CloudStorage/GoogleDrive-pulcher88@gmail.com/My Drive/to Share/HBN Minisets/hbn_bids_R5_L100"
 
 echo "=========================================="
 echo "EEG Data Processing Pipeline"
