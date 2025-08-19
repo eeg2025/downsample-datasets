@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """
 Complete BIDS datasets by copying missing metadata files from original SET dataset
-to the converted EDF and BDF datasets.
+to the converted EDF/BDF dataset.
 
-This script ensures that the converted datasets maintain BIDS compliance by copying:
+This script ensures that the converted dataset maintains BIDS compliance by copying:
 - Root-level metadata files (dataset_description.json, participants.tsv, etc.)
 - Task-level metadata files (task-*_eeg.json, task-*_events.json)
 - Event files (sub-*/eeg/*_events.tsv)
 - Other supporting files (README, code/, derivatives/)
+
+Usage: complete_bids_datasets.py <INPUT_DIR> <OUTPUT_DIR> <FORMAT_NAME>
 """
 
 import os
 import shutil
 import glob
+import argparse
 from pathlib import Path
 import json
 from datetime import datetime
@@ -57,6 +60,9 @@ def complete_bids_dataset(source_dataset, target_dataset, format_name):
     print(f"{'='*80}")
     print(f"Source: {source_dataset}")
     print(f"Target: {target_dataset}")
+    
+    # Ensure target directory exists
+    os.makedirs(target_dataset, exist_ok=True)
     
     # 1. Copy root-level metadata files
     print(f"\n1. Copying root-level metadata files...")
@@ -145,30 +151,40 @@ def complete_bids_dataset(source_dataset, target_dataset, format_name):
 
 
 def main():
-    # Define paths
-    source_dataset = "/Users/yahya/Library/CloudStorage/GoogleDrive-pulcher88@gmail.com/My Drive/to Share/HBN Minisets/hbn_bids_R5_L100"
-    edf_dataset = "/Users/yahya/Library/CloudStorage/GoogleDrive-pulcher88@gmail.com/My Drive/to Share/HBN Minisets/hbn_bids_R5_edf" 
-    bdf_dataset = "/Users/yahya/Library/CloudStorage/GoogleDrive-pulcher88@gmail.com/My Drive/to Share/HBN Minisets/hbn_bids_R5_bdf"
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description='Complete BIDS dataset by copying metadata from source',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s /path/to/source/bids /path/to/target/bdf BDF
+  %(prog)s ~/data/original_bids ~/data/converted_edf EDF
+        """
+    )
+    parser.add_argument('input_dir', help='Source BIDS directory containing metadata files')
+    parser.add_argument('output_dir', help='Target directory to complete with BIDS structure')
+    parser.add_argument('format_name', help='Format name for dataset description (e.g., BDF, EDF)')
+    
+    args = parser.parse_args()
+    
+    # Define paths from arguments
+    source_dataset = os.path.abspath(args.input_dir)
+    target_dataset = os.path.abspath(args.output_dir)
+    format_name = args.format_name
     
     print("BIDS Dataset Completion Script")
     print("=" * 80)
+    print(f"Source dataset: {source_dataset}")
+    print(f"Target dataset: {target_dataset}")
+    print(f"Format: {format_name}")
     
     # Check if source dataset exists
     if not os.path.exists(source_dataset):
         print(f"Error: Source dataset not found: {source_dataset}")
         return 1
     
-    # Complete EDF dataset
-    if os.path.exists(edf_dataset):
-        complete_bids_dataset(source_dataset, edf_dataset, "EDF")
-    else:
-        print(f"Warning: EDF dataset not found: {edf_dataset}")
-    
-    # Complete BDF dataset  
-    if os.path.exists(bdf_dataset):
-        complete_bids_dataset(source_dataset, bdf_dataset, "BDF")
-    else:
-        print(f"Warning: BDF dataset not found: {bdf_dataset}")
+    # Complete the target dataset
+    complete_bids_dataset(source_dataset, target_dataset, format_name)
     
     print(f"\n{'='*80}")
     print("BIDS Dataset Completion Summary")
@@ -179,8 +195,8 @@ def main():
     print("✓ Derivatives directory copied")
     print("✓ Subject-level event files copied")
     print("✓ Subject-level JSON files copied")
-    print("✓ Dataset descriptions updated")
-    print("\nBoth EDF and BDF datasets are now BIDS-compliant!")
+    print("✓ Dataset description updated")
+    print(f"\n{format_name} dataset is now BIDS-compliant!")
     
     return 0
 

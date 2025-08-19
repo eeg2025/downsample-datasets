@@ -4,11 +4,14 @@ Convert EEGLAB SET files to BDF format using emgio.
 
 This script scans for SET files in the HBN dataset and converts them to BDF format
 while preserving the directory structure and generating conversion reports.
+
+Usage: convert_set_to_bdf.py <INPUT_DIR> <OUTPUT_DIR>
 """
 
 import os
 import sys
 import glob
+import argparse
 from pathlib import Path
 import time
 import json
@@ -28,20 +31,20 @@ def find_set_files(dataset_path):
     return sorted(set_files)
 
 
-def create_output_path(set_file_path, dataset_path, output_base):
+def create_output_path(set_file_path, dataset_path, output_dir):
     """Create output path maintaining directory structure."""
     # Get relative path from dataset root
     rel_path = os.path.relpath(set_file_path, dataset_path)
     
-    # Replace .set extension with .bdf and adjust path for BDF output
+    # Replace .set extension with .bdf
     rel_path = rel_path.replace('.set', '.bdf')
     
-    # Create output path
-    output_path = os.path.join(output_base, 'bdf_converted', rel_path)
+    # Create output path directly in the output directory
+    output_path = os.path.join(output_dir, rel_path)
     
     # Ensure output directory exists
-    output_dir = os.path.dirname(output_path)
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir_path = os.path.dirname(output_path)
+    os.makedirs(output_dir_path, exist_ok=True)
     
     # Return path without extension (emgio will add .bdf)
     return output_path.replace('.bdf', '')
@@ -90,20 +93,38 @@ def convert_set_to_bdf(set_file_path, output_path):
 
 
 def main():
-    # Define paths
-    dataset_path = "/Users/yahya/Library/CloudStorage/GoogleDrive-pulcher88@gmail.com/My Drive/to Share/HBN Minisets/hbn_bids_R5_L100"
-    output_base = "/Users/yahya/Library/CloudStorage/GoogleDrive-pulcher88@gmail.com/My Drive/to Share/HBN Minisets"
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description='Convert EEGLAB SET files to BDF format',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s /path/to/input/bids /path/to/output/bdf
+  %(prog)s ~/data/eeg_set ~/data/eeg_bdf
+        """
+    )
+    parser.add_argument('input_dir', help='Input directory containing SET files')
+    parser.add_argument('output_dir', help='Output directory for BDF files')
+    
+    args = parser.parse_args()
+    
+    # Define paths from arguments
+    dataset_path = os.path.abspath(args.input_dir)
+    output_dir = os.path.abspath(args.output_dir)
     
     print("=" * 80)
     print("EEGLAB SET to BDF Conversion Script")
     print("=" * 80)
-    print(f"Dataset path: {dataset_path}")
-    print(f"Output base: {output_base}")
+    print(f"Input directory: {dataset_path}")
+    print(f"Output directory: {output_dir}")
     
     # Check if dataset exists
     if not os.path.exists(dataset_path):
-        print(f"Error: Dataset path does not exist: {dataset_path}")
+        print(f"Error: Input directory does not exist: {dataset_path}")
         return 1
+    
+    # Create output directory
+    os.makedirs(output_dir, exist_ok=True)
     
     # Find all SET files
     print("\nScanning for SET files...")
@@ -115,14 +136,14 @@ def main():
         return 1
     
     # Create output directory for reports
-    report_dir = os.path.join(output_base, 'conversion_reports')
+    report_dir = os.path.join(output_dir, 'conversion_reports')
     os.makedirs(report_dir, exist_ok=True)
     
     # Initialize conversion report
     conversion_report = {
         'conversion_type': 'SET_to_BDF',
-        'dataset_path': dataset_path,
-        'output_base': output_base,
+        'input_directory': dataset_path,
+        'output_directory': output_dir,
         'start_time': datetime.now().isoformat(),
         'total_files': len(set_files),
         'conversions': []
@@ -140,7 +161,7 @@ def main():
         
         try:
             # Create output path
-            output_path = create_output_path(set_file, dataset_path, output_base)
+            output_path = create_output_path(set_file, dataset_path, output_dir)
             
             # Convert the file
             result = convert_set_to_bdf(set_file, output_path)
