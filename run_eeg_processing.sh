@@ -3,16 +3,31 @@
 # EEG Data Processing Pipeline
 # This script processes EEG-BIDS data from 500 Hz to 100 Hz
 # 
-# Usage: ./run_eeg_processing.sh
+# Usage: ./run_eeg_processing.sh <INPUT_DIR> <OUTPUT_DIR>
 #
-# Input:  /Volumes/data/HBN/R5
-# Output: /Volumes/data/HBN/R5_L100
+# Arguments:
+#   INPUT_DIR:  Path to input BIDS dataset directory
+#   OUTPUT_DIR: Path to output directory for processed data
 
 set -e  # Exit on any error
 
+# Check arguments
+if [ $# -ne 2 ]; then
+    echo "Error: Wrong number of arguments"
+    echo "Usage: $0 <INPUT_DIR> <OUTPUT_DIR>"
+    echo ""
+    echo "Arguments:"
+    echo "  INPUT_DIR:  Path to input BIDS dataset directory"
+    echo "  OUTPUT_DIR: Path to output directory for processed data"
+    echo ""
+    echo "Example:"
+    echo "  $0 /path/to/input/bids /path/to/output/processed"
+    exit 1
+fi
+
 # Configuration
-INPUT_DIR="/Volumes/data/HBN/R5"
-OUTPUT_DIR="/Volumes/data/HBN/R5_L100"
+INPUT_DIR="$1"
+OUTPUT_DIR="$2"
 
 echo "=========================================="
 echo "EEG Data Processing Pipeline"
@@ -49,7 +64,7 @@ echo "Step 1: Processing EEG data with MATLAB"
 echo "=========================================="
 
 # Run MATLAB processing
-matlab -batch "addpath('$(pwd)'); process_eeg_data('$INPUT_DIR', '$OUTPUT_DIR'); exit;"
+matlab -batch "addpath('$(pwd)/resampling'); process_eeg_data('$INPUT_DIR', '$OUTPUT_DIR'); exit;"
 
 if [ $? -ne 0 ]; then
     echo "Error: MATLAB processing failed"
@@ -69,7 +84,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run metadata processing
-python3 process_metadata.py "$INPUT_DIR" "$OUTPUT_DIR"
+python3 resampling/process_metadata.py "$INPUT_DIR" "$OUTPUT_DIR"
 
 if [ $? -ne 0 ]; then
     echo "Error: Metadata processing failed"
