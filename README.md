@@ -66,14 +66,31 @@ resample_dataset/
 
 ### For Resampling Pipeline
 - **MATLAB** with **EEGLAB** toolbox installed
-- **Python 3.x** with pandas
+- **Python 3.8+**
 - **Bash shell** (macOS/Linux)
 
 ### For Format Conversion
-- **Python 3.x** with:
-  - pandas
-  - emgio library (path: `/Users/yahya/Documents/git/emgio`)
-- **Conda** environment: `torch-312`
+- **Python 3.8+**
+
+## 🔧 Installation
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/eeg2025/downsample-datasets.git
+cd downsample-datasets
+```
+
+### 2. Install Python dependencies
+```bash
+pip install -r requirements.txt
+```
+
+This will install:
+- **pandas** - Data manipulation
+- **numpy** - Numerical computing
+- **emgio** - EEG format conversion (from GitHub)
+- **matplotlib** - Visualization
+- **scipy** - Signal processing
 
 ## 📖 Detailed Usage
 
@@ -180,15 +197,13 @@ addpath('/path/to/eeglab')
 eeglab  % Initialize EEGLAB
 ```
 
-### Conda Environment Missing
+### Python Dependencies Missing
 ```
-Error: Failed to activate torch-312 conda environment
+Warning: Required Python packages not found.
 ```
-**Solution**: Create the environment:
+**Solution**: Install dependencies:
 ```bash
-conda create -n torch-312 python=3.12
-conda activate torch-312
-pip install pandas
+pip install -r requirements.txt
 ```
 
 ### MATLAB Not in PATH

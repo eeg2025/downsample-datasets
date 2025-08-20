@@ -15,10 +15,12 @@ import json
 import traceback
 from datetime import datetime
 
-# Add emgio to path
-sys.path.insert(0, '/Users/yahya/Documents/git/emgio')
-
-from emgio import EMG
+try:
+    from emgio import EMG
+except ImportError:
+    print("Error: emgio package not found.")
+    print("Please install with: pip install git+https://github.com/neuromechanist/emgio.git")
+    sys.exit(1)
 
 
 def find_set_files(dataset_path):

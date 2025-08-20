@@ -43,24 +43,17 @@ if [ ! -d "$INPUT_DIR" ]; then
 fi
 
 # Check if Python is available
-if ! command -v conda &> /dev/null; then
-    echo "Error: Conda not found. Please ensure conda is in your PATH."
-    exit 1
-fi
-
-# Activate conda environment
-echo "Activating torch-312 conda environment..."
-source "$(conda info --base)/etc/profile.d/conda.sh"
-conda activate torch-312
-
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to activate torch-312 conda environment"
-    exit 1
-fi
-
-# Check if Python is available in the environment
 if ! command -v python3 &> /dev/null; then
-    echo "Error: Python3 not found in torch-312 environment."
+    echo "Error: Python3 not found. Please ensure Python3 is in your PATH."
+    exit 1
+fi
+
+# Check if required Python packages are installed
+echo "Checking Python dependencies..."
+python3 -c "import pandas" 2>/dev/null
+if [ $? -ne 0 ]; then
+    echo "Warning: Required Python packages not found."
+    echo "Please install dependencies with: pip install -r requirements.txt"
     exit 1
 fi
 
@@ -122,7 +115,3 @@ echo "- BIDS structure: Complete metadata and directory structure"
 echo ""
 echo "You can now use the BDF dataset in $OUTPUT_DIR"
 
-# Deactivate conda environment
-echo ""
-echo "Deactivating conda environment..."
-conda deactivate
