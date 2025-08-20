@@ -74,7 +74,7 @@ echo "Step 1: Converting SET files to BDF format"
 echo "=========================================="
 
 # Run SET to BDF conversion
-python3 convert_set_to_bdf.py "$INPUT_DIR" "$OUTPUT_DIR"
+python3 format_conversion/convert_set_to_bdf.py "$INPUT_DIR" "$OUTPUT_DIR"
 
 if [ $? -ne 0 ]; then
     echo "Error: SET to BDF conversion failed"
@@ -87,7 +87,7 @@ echo "Step 2: Completing BIDS structure"
 echo "=========================================="
 
 # Run BIDS completion
-python3 complete_bids_datasets.py "$INPUT_DIR" "$OUTPUT_DIR" "BDF"
+python3 format_conversion/complete_bids_datasets.py "$INPUT_DIR" "$OUTPUT_DIR" "BDF"
 
 if [ $? -ne 0 ]; then
     echo "Error: BIDS completion failed"

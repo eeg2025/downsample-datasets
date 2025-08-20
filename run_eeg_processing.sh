@@ -64,7 +64,7 @@ echo "Step 1: Processing EEG data with MATLAB"
 echo "=========================================="
 
 # Run MATLAB processing
-matlab -batch "addpath('$(pwd)'); process_eeg_data('$INPUT_DIR', '$OUTPUT_DIR'); exit;"
+matlab -batch "addpath('$(pwd)/resampling'); process_eeg_data('$INPUT_DIR', '$OUTPUT_DIR'); exit;"
 
 if [ $? -ne 0 ]; then
     echo "Error: MATLAB processing failed"
@@ -84,7 +84,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run metadata processing
-python3 process_metadata.py "$INPUT_DIR" "$OUTPUT_DIR"
+python3 resampling/process_metadata.py "$INPUT_DIR" "$OUTPUT_DIR"
 
 if [ $? -ne 0 ]; then
     echo "Error: Metadata processing failed"
