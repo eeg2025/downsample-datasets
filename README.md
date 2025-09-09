@@ -1,5 +1,8 @@
 # EEG Data Processing Pipeline
 
+> [!CAUTION]
+> You probably SHOULD NOT use this repository directly for the EEG2025 Challenge. All available datasets have already been processed using this pipeline. This repository is provided for transparency and reproducibility. If you want to process your own BIDS datasets, feel free to use it.
+
 A comprehensive pipeline for processing, resampling, and converting EEG-BIDS datasets. Designed for the HBN (Healthy Brain Network) EEG datasets and the EEG2025 NeurIPS Challenge.
 
 ## 📁 Project Structure
